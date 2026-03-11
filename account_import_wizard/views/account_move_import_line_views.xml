@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="account_move_import_line_view_search" model="ir.ui.view">
+        <field name="model">account.move.import.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="account_partner_id"/>
+                <field name="account_partner_name"/>
+                <field name="account_invoice_date"/>
+                <field name="account_invoice_date_due"/>
+                <field name="account_amount_total_signed"/>
+                <field name="account_state"/>
+                <!-- <field name="account_product_id"/>
+                <field name="account_state"/> -->
+                <separator/>
+                <filter
+          string="Errored"
+          name="error"
+          domain="[('state', '=', 'error')]"
+        />
+                <separator />
+                <filter
+          string="To Create"
+          name="2create"
+          domain="[('action', '=', 'create')]"
+        />
+                <!-- <group expand="0" name="group_by" string="Group By">
+                    <filter
+            name="group_product"
+            string="Product"
+            context="{'group_by': 'account_product_id'}"
+          />
+                    <filter
+            name="group_partner"
+            string="Partner"
+            context="{'group_by': 'account_partner_id'}"
+          />
+                    <separator />
+                    <filter
+            name="group_status"
+            string="Status"
+            context="{'group_by': 'state'}"
+          />
+                </group> -->
+            </search>
+        </field>
+    </record>
+
+    <record id="account_move_import_line_view_form" model="ir.ui.view">
+        <field name="model">account.move.import.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button
+            name="action_validate"
+            string="Validate"
+            type="object"
+            class="oe_read_only"
+            states="2validate,error"
+          />
+                    <button
+            name="action_process"
+            string="Process"
+            type="object"
+            class="oe_read_only"
+            states="error,pass"
+          />
+                    <field name="state" widget="statusbar" />
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="account_partner_code"/>
+                            <field name="account_partner_name"/>
+                            <field name="account_invoice_date"/>
+                            <field name="account_invoice_date_due"/>
+                            <field name="account_origin"/>
+                            <field name="account_amount_untaxed_signed"/>
+                            <field name="account_amount_total_signed"/>
+                            <field name="account_product_code"/>
+                            <field name="account_product_name"/>
+                            <field name="account_quantity"/>
+                            <field name="account_price_unit"/>
+                            <field name="account_discount"/>
+                            <field name="account_state"/>
+<!--                            <field name="account_payment_state"/>-->
+<!--                            <field name="account_tax_ids"/>-->
+<!--                            <field name="account_price_subtotal"/>-->
+                        </group>
+                        <group>
+                            <field
+                name="account_partner_id"
+                options="{'no_create': True, 'no_open': True}"
+              />
+                            <field
+                name="account_product_id"
+                options="{'no_create': True, 'no_open': True}"
+              />
+                        </group>
+                    </group>
+                    <field name="log_info"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="account_move_import_line_view_tree" model="ir.ui.view">
+        <field name="model">account.move.import.line</field>
+        <field name="arch" type="xml">
+            <tree
+        decoration-danger="state == 'error'"
+        decoration-muted="state == 'done'"
+        decoration-it="log_info"
+        editable="top"
+      >
+                <field name="action"/>
+                <field name="account_invoice_id" invisible="1"/>
+                <field name="account_partner_code" optional="hide" readonly="1"/>
+                <field name="account_partner_name" readonly="1"/>
+                <field name="account_partner_id" optional="hide"/>
+                <field name="account_invoice_date" readonly="1"/>
+                <field name="account_invoice_date_due" readonly="1"/>
+                <field name="account_amount_untaxed_signed" readonly="1"/>
+                <field name="account_amount_total_signed" readonly="1"/>
+                <field name="account_origin"/>
+                <field name="account_product_code" readonly="1" optional="hide"/>
+                <field name="account_product_name" readonly="1"/>
+                <field name="account_product_id" readonly="1"/>
+                <field name="account_quantity" readonly="1"/>
+                <field name="account_price_unit" readonly="1"/>
+                <field name="account_discount" readonly="1"/>
+                <field name="account_state"/>
+                <!-- <field name="account_payment_state"/> -->
+                <!--
+                <field name="account_product_id" optional="hide"/>
+                <field name="account_tax_ids" readonly="1"/>
+                <field name="account_price_subtotal" readonly="1"/>
+                -->
+                <field name="state" optional="hide"/>
+                <field name="log_info" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="account_move_import_line_action" model="ir.actions.act_window">
+        <field name="name">Import Account Move Lines</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">account.move.import.line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="account_move_import_line_view_tree" />
+    </record>
+</odoo>

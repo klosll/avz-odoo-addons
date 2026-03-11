@@ -1,0 +1,5 @@
+Este repositorio es para los módulos de Avanzosc (Avz) que no están para Odoo 15 
+y que en KLO los hemos traído a esta versión para poder usarlos en 
+nuestros proyectos.
+Como Avz los tiene en v14 nosotros las adaptamos a la v15 que es la que usamos actualmente.
+
