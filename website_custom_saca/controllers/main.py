@@ -96,11 +96,14 @@ class CustomerPortal(CustomerPortal):
         if not show_all:
             domain += [(("driver_id", "=", partner.id))]
         saca_lines = request.env["saca.line"].sudo().search(domain, order="seq")
-        saca_line_ids = saca_lines.ids or False
-        value_index = saca_line_ids.index(saca_line.id) if saca_line_ids else False
+        saca_line_ids = saca_lines.ids or []
+        try:
+            value_index = saca_line_ids.index(saca_line.id)
+        except ValueError:
+            value_index = False
         next_saca_line_id = None
         prev_saca_line_id = None
-        if value_index:
+        if value_index is not False:
             try:
                 next_saca_line_id = saca_line_ids[value_index + 1]
             except IndexError:
