@@ -9,6 +9,7 @@
     "depends": [
         "stock",
         "purchase_last_price_info",
+        "purchase_last_price_info_discount",
     ],
     "data": [
         "security/ir.model.access.csv",

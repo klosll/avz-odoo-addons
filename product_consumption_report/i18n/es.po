@@ -112,6 +112,20 @@ msgid "Last Modified on"
 msgstr "Última modificación el"
 
 #. module: product_consumption_report
+#: code:addons/product_consumption_report/report/product_consumption_xlsx.py:0
+#: code:addons/product_consumption_report/report/product_consumption_xlsx.py:0
+#, python-format
+msgid "Last Purchase Discount (%)"
+msgstr "Último descuento compra (%)"
+
+#. module: product_consumption_report
+#: code:addons/product_consumption_report/report/product_consumption_xlsx.py:0
+#: code:addons/product_consumption_report/report/product_consumption_xlsx.py:0
+#, python-format
+msgid "Last Purchase Net Unit Price"
+msgstr "Último precio unitario neto compra"
+
+#. module: product_consumption_report
 #: model:ir.model.fields,field_description:product_consumption_report.field_product_consumption_wizard__write_uid
 msgid "Last Updated by"
 msgstr "Actualizaro por"

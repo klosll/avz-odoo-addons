@@ -36,6 +36,24 @@ class ProductConsumptionXlsx(models.AbstractModel):
             }
         )
         table_detail_right_num.set_num_format("#,##0.00")
+        table_num_8 = workbook.add_format(
+            {
+                "bold": True,
+                "border": 1,
+                "align": "center",
+                "valign": "vcenter",
+            }
+        )
+        table_num_8.set_num_format("#,##0.########")
+        table_num_2 = workbook.add_format(
+            {
+                "bold": True,
+                "border": 1,
+                "align": "center",
+                "valign": "vcenter",
+            }
+        )
+        table_num_2.set_num_format("#,##0.##")
         worksheet = workbook.add_worksheet("Product Consumption")
         n = 0
         worksheet.set_row(n, 45)
@@ -52,8 +70,10 @@ class ProductConsumptionXlsx(models.AbstractModel):
         worksheet.write(n, 3, _("Final Inventory"), table_header)
         worksheet.write(n, 4, _("Consumption"), table_header)
         worksheet.write(n, 5, _("Cost Unit"), table_header)
-        worksheet.write(n, 6, _("Total"), table_header)
-        worksheet.write(n, 7, _("End Inventory Value"), table_header)
+        worksheet.write(n, 6, _("Last Purchase Discount (%)"), table_header)
+        worksheet.write(n, 7, _("Last Purchase Net Unit Price"), table_header)
+        worksheet.write(n, 8, _("Total"), table_header)
+        worksheet.write(n, 9, _("End Inventory Value"), table_header)
         variants = self.env["product.product"].browse(data.get("product_variants"))
         for product in variants:
             n += 1
@@ -81,7 +101,9 @@ class ProductConsumptionXlsx(models.AbstractModel):
             worksheet.write(n, 1, qty_date_start, table)
             worksheet.write(n, 2, entry_qty, table)
             worksheet.write(n, 3, qty_date_end, table)
-            worksheet.write(n, 4, consumption, table)
+            worksheet.write(n, 4, consumption, table_num_2)
             worksheet.write(n, 5, product.last_purchase_price, table)
-            worksheet.write(n, 6, product.last_purchase_price * consumption, table)
-            worksheet.write(n, 7, product.last_purchase_price * qty_date_end, table)
+            worksheet.write(n, 6, product.last_purchase_discount, table)
+            worksheet.write(n, 7, product.last_purchase_net_unit_price, table_num_8)
+            worksheet.write(n, 8, product.last_purchase_net_unit_price * consumption, table_num_8)
+            worksheet.write(n, 9, product.last_purchase_net_unit_price * qty_date_end, table_num_8)
