@@ -44,7 +44,7 @@ class ProductConsumptionXlsx(models.AbstractModel):
                 "valign": "vcenter",
             }
         )
-        table_num_8.set_num_format("#,##0.########")
+        table_num_8.set_num_format("#,##0.00######")
         table_num_2 = workbook.add_format(
             {
                 "bold": True,
@@ -53,7 +53,7 @@ class ProductConsumptionXlsx(models.AbstractModel):
                 "valign": "vcenter",
             }
         )
-        table_num_2.set_num_format("#,##0.##")
+        table_num_2.set_num_format("#,##0.00")
         worksheet = workbook.add_worksheet("Product Consumption")
         n = 0
         worksheet.set_row(n, 45)
@@ -98,12 +98,12 @@ class ProductConsumptionXlsx(models.AbstractModel):
             entry_qty = sum(entry_lines.mapped("qty_done"))
             consumption = qty_date_start + entry_qty - qty_date_end
             worksheet.write(n, 0, product.display_name, table)
-            worksheet.write(n, 1, qty_date_start, table)
-            worksheet.write(n, 2, entry_qty, table)
-            worksheet.write(n, 3, qty_date_end, table)
+            worksheet.write(n, 1, qty_date_start, table_num_2)
+            worksheet.write(n, 2, entry_qty, table_num_2)
+            worksheet.write(n, 3, qty_date_end, table_num_2)
             worksheet.write(n, 4, consumption, table_num_2)
-            worksheet.write(n, 5, product.last_purchase_price, table)
-            worksheet.write(n, 6, product.last_purchase_discount, table)
+            worksheet.write(n, 5, product.last_purchase_price, table_num_2)
+            worksheet.write(n, 6, product.last_purchase_discount, table_num_2)
             worksheet.write(n, 7, product.last_purchase_net_unit_price, table_num_8)
             worksheet.write(n, 8, product.last_purchase_net_unit_price * consumption, table_num_8)
             worksheet.write(n, 9, product.last_purchase_net_unit_price * qty_date_end, table_num_8)
