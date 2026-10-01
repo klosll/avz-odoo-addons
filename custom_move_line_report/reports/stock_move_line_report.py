@@ -178,12 +178,6 @@ class StockMoveLineReport(models.Model):
 
     def action_view_move_report(self):
         context = self.env.context.copy()
-        cron = self.env.ref(
-            "custom_move_line_report.refresh_materialized_view",
-            raise_if_not_found=False,
-        )
-        if cron:
-            cron.sudo().method_direct_trigger()
         return {
             "name": _("Stock Move Report"),
             "view_mode": "pivot,tree",
@@ -201,7 +195,7 @@ class StockMoveLineReport(models.Model):
     @api.model
     def refresh_view(self):
         self.env.cr.execute(
-            "refresh materialized view %s",
+            "refresh materialized view concurrently %s",
             (AsIs(self._table),),
         )
 
@@ -216,6 +210,22 @@ class StockMoveLineReport(models.Model):
             {
                 "select": AsIs(self._select()),
             },
+        )
+        self.env.cr.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS stock_move_line_report_id_uniq "
+            "ON stock_move_line_report (id)"
+        )
+        self.env.cr.execute(
+            "CREATE INDEX IF NOT EXISTS stock_move_line_report_date_idx "
+            "ON stock_move_line_report (date)"
+        )
+        self.env.cr.execute(
+            "CREATE INDEX IF NOT EXISTS stock_move_line_report_product_date_idx "
+            "ON stock_move_line_report (product_id, date)"
+        )
+        self.env.cr.execute(
+            "CREATE INDEX IF NOT EXISTS stock_move_line_report_product_lot_idx "
+            "ON stock_move_line_report (product_id, lot_id)"
         )
         cron = self.env.ref(
             "custom_move_line_report.refresh_materialized_view",
