@@ -78,7 +78,7 @@ class StockPicking(models.Model):
                                             "product_uom_id": (
                                                 line.product_id.uom_id.id
                                             ),
-                                            "qty_done": line.qty_done,
+                                            "quantity": line.quantity,
                                             "picking_id": purchase_picking.id,
                                             "location_id": (
                                                 purchase_picking.location_id.id
@@ -120,5 +120,5 @@ class StockPicking(models.Model):
                                     )
                                 )
                             purchase_line.lot_id = lot.id
-                            purchase_line.qty_done = line.qty_done
+                            purchase_line.quantity = line.quantity
         return result

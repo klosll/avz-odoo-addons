@@ -1,0 +1,110 @@
+# Copyright 2024 Berezi Amubieta - AvanzOSC
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
+from datetime import timedelta
+
+from odoo import api, fields, models
+
+
+class SaleOrderLine(models.Model):
+    _inherit = "sale.order.line"
+
+    order_partner_id = fields.Many2one(
+        depends=["product_id", "order_id", "order_id.partner_id"]
+    )
+
+    @api.depends(
+        "move_ids.state",
+        "move_ids.scrapped",
+        "move_ids.product_uom_qty",
+        "move_ids.product_uom",
+    )
+    def _compute_qty_delivered(self):
+        super()._compute_qty_delivered()
+        for line in self:
+            if (
+                line.qty_delivered_method == "stock_move"
+                and (line.order_id.update_line_qty)
+                and line.return_qty
+            ):
+                line.product_uom_qty = line.qty_delivered
+                line._compute_qty_amount_pending_delivery()
+            if (
+                line.order_id.picking_ids
+                and line.qty_delivered_method == "stock_move"
+                and all([c.state == "done" for c in line.order_id.picking_ids])
+            ):
+                line.product_uom_qty = line.qty_delivered
+                line.order_id.update_line_qty = False
+
+    @api.depends(
+        "product_id",
+        "order_id.type_id",
+        "order_id.type_id.picking_type_id",
+        "order_id.type_id.filter_lot_by_location",
+        "order_id.type_id.picking_type_id.default_location_src_id",
+        "return_qty",
+        "product_uom_qty",
+    )
+    def _compute_domain_lot_id(self):
+        # v14: this hook was _compute_possible_lot_ids() extending
+        # possible_lot_ids. In v18 sale_order_lot_selection computes
+        # domain_lot_id instead, so the same rule is applied there.
+        super()._compute_domain_lot_id()
+        for line in self:
+            if line.product_id and line.product_id.tracking != "none":
+                if line.return_qty and not line.product_uom_qty:
+                    lots = self.env["stock.lot"].search(
+                        [
+                            ("product_id", "=", line.product_id.id),
+                            ("company_id", "=", line.company_id.id),
+                        ]
+                    )
+                    line.domain_lot_id = [("id", "in", lots.ids)]
+
+    @api.depends("invoice_lines.move_id.state", "invoice_lines.quantity")
+    def _get_invoice_qty(self):
+        super()._get_invoice_qty()
+        for line in self:
+            if line.invoice_lines.filtered(lambda c: c.out_refund_from_invoice):
+                qty_invoiced = 0.0
+                for invoice_line in line.invoice_lines:
+                    if invoice_line.move_id.state != "cancel":
+                        if invoice_line.move_id.move_type == "out_invoice":
+                            qty_invoiced += (
+                                invoice_line.product_uom_id._compute_quantity(
+                                    invoice_line.quantity, line.product_uom
+                                )
+                            )
+                        elif (
+                            invoice_line.filtered(
+                                lambda c: not c.out_refund_from_invoice
+                            ).move_id.move_type
+                            == "out_refund"
+                        ):
+                            qty_invoiced -= (
+                                invoice_line.product_uom_id._compute_quantity(
+                                    invoice_line.quantity, line.product_uom
+                                )
+                            )
+                line.qty_invoiced = qty_invoiced
+
+    @api.model
+    def create(self, values):
+        if "customer_lead" not in values:
+            order = self.env["sale.order"].browse(values.get("order_id"))
+            product = self.env["product.product"].browse(values.get("product_id"))
+            values.update(
+                {"customer_lead": order._get_customer_lead(product.product_tmpl_id)}
+            )
+        result = super(SaleOrderLine, self).create(values)
+        if not result.order_id.commitment_date:
+            order_date = fields.Datetime.from_string(
+                result.order_id.date_order
+                if result.order_id.date_order
+                and result.order_id.state in ["sale", "done"]
+                else fields.Datetime.now()
+            )
+            result.order_id.commitment_date = order_date + timedelta(
+                days=result.customer_lead or 0.0
+            )
+        return result

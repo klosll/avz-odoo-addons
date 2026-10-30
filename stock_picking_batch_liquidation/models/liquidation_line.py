@@ -98,11 +98,11 @@ class LiquidationLine(models.Model):
                         sum(entry_movelines.mapped("amount"))
                         - sum(return_movelines.mapped("amount"))
                     )
-                    total_qty_done = abs(
+                    total_quantity = abs(
                         sum(entry_movelines.mapped("quantity"))
                         - sum(return_movelines.mapped("quantity"))
                     )
-                    price = total_amount / total_qty_done
+                    price = total_amount / total_quantity
                 if contract_line.type == "charge":
                     n = -1
                 if contract_line.type == "variable":

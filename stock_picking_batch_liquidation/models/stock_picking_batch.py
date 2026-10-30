@@ -881,11 +881,11 @@ class StockPickingBatch(models.Model):
                 sum(entry_movelines.mapped("amount"))
                 - sum(return_movelines.mapped("amount"))
             )
-            total_qty_done = abs(
+            total_quantity = abs(
                 sum(entry_movelines.mapped("quantity"))
                 - sum(return_movelines.mapped("quantity"))
             )
-            return total_amount / total_qty_done
+            return total_amount / total_quantity
         return 0
 
     def _get_liquidation_line_sign(self, line):

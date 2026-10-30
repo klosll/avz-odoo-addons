@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_picking_form" model="ir.ui.view">
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form" />
+        <field name="arch" type="xml">
+            <field name="origin" position="attributes">
+                <attribute name="readonly">state == 'cancel'</attribute>
+            </field>
+        </field>
+    </record>
+
+    <!-- v14: the lock/unlock feature was a form button (action_toggle_is_locked)
+         with its groups replaced by custom_p.group_picking_unlock. In v18 the
+         button is the server action stock.action_toggle_is_locked, so the same
+         group restriction is applied to that action instead. -->
+    <record id="stock.action_toggle_is_locked" model="ir.actions.server">
+        <field name="groups_id" eval="[(6, 0, [ref('custom_p.group_picking_unlock')])]" />
+    </record>
+</odoo>

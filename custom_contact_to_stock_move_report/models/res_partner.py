@@ -12,7 +12,7 @@ class ResPartner(models.Model):
             {
                 "search_default_groupby_product": 2,
                 "search_default_from": 1,
-                "pivot_measures": ["entry_qty", "output_qty", "qty_done"],
+                "pivot_measures": ["entry_qty", "output_qty", "quantity"],
             }
         )
         cron = self.env.ref(

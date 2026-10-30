@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="action_report_purchase_order_by_packaging" model="ir.actions.report">
+        <field name="name">Purchase Order By Packaging</field>
+        <field name="model">purchase.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field
+      name="report_name"
+    >purchase_order_packaging_report.report_purchaseorder_by_packaging</field>
+        <field
+      name="report_file"
+    >purchase_order_packaging_report.report_purchaseorder_by_packaging</field>
+        <field name="binding_model_id" ref="purchase.model_purchase_order" />
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_purchaseorder_by_packaging">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="package_report" t-value="True" />
+                <t
+          t-call="purchase.report_purchaseorder_document"
+          t-lang="o.partner_id.lang"
+        />
+            </t>
+        </t>
+    </template>
+
+    <template
+    id="report_purchaseorder_by_packaging_document"
+    inherit_id="purchase.report_purchaseorder_document"
+  >
+        <!-- v18: th_description existe; se oculta y se insertan las columnas del informe por empaquetado -->
+        <th name="th_description" position="attributes">
+            <attribute name="style">display:none;</attribute>
+        </th>
+        <th name="th_description" position="after">
+            <th t-if="package_report" style="width: 50%" name="th_description"><strong
+        >Description</strong></th>
+            <th t-if="not package_report" name="th_description"><strong
+        >Description</strong></th>
+            <th t-if="package_report" name="th_packaging"><strong
+        >Packaging</strong></th>
+            <th t-if="package_report" name="th_packaging_qty"><strong
+        >Packaging Qty</strong></th>
+            <th t-if="package_report" name="th_date_planned"><strong
+        >Date Planned</strong></th>
+        </th>
+        <!-- v18: la celda de impuestos se localiza por contenido (td_taxes ya no existe) -->
+        <xpath expr="//tbody//td[.//span[contains(@t-out, 'taxes_id')]]" position="before">
+            <td t-if="package_report" id="packaging">
+                <span
+          t-if="line.product_packaging_id"
+          t-field="line.product_packaging_id.name"
+        />
+            </td>
+            <td t-if="package_report" id="packaging_qty">
+                <span
+          t-if="line.product_packaging_qty"
+          t-field="line.product_packaging_qty"
+        />
+            </td>
+        </xpath>
+        <th name="th_taxes" position="attributes">
+            <attribute name="t-if">not package_report</attribute>
+        </th>
+        <xpath expr="//tbody//td[.//span[contains(@t-out, 'taxes_id')]]" position="attributes">
+            <attribute name="t-if">not package_report</attribute>
+        </xpath>
+        <!-- v18 no tiene columna de fecha en la fila: se crea (el gemelo
+             klo_purchase_order_only_packaging_report se ancla en esta celda) -->
+        <xpath expr="//tbody//td[.//span[@t-field='line.product_qty']]" position="before">
+            <td class="text-center">
+                <span
+          t-if="package_report"
+          t-field="line.date_planned"
+          t-options='{"widget": "date"}'
+        />
+                <span t-if="not package_report" t-field="line.date_planned" />
+            </td>
+        </xpath>
+        <!-- Precio unitario con 4 decimales (el original se oculta) -->
+        <xpath expr="//tbody//td[.//span[@t-field='line.price_unit']]/span" position="attributes">
+            <attribute name="style">display:none;</attribute>
+        </xpath>
+        <xpath expr="//tbody//td[.//span[@t-field='line.price_unit']]/span" position="after">
+            <span
+        t-if="package_report"
+        t-field="line.price_unit"
+        t-options='{"widget":"float","precision":4}'
+      />
+            <span t-if="not package_report" t-field="line.price_unit" />
+        </xpath>
+    </template>
+</odoo>

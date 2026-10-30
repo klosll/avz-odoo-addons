@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_invoice_tree" model="ir.ui.view">
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree" />
+        <field name="arch" type="xml">
+            <field name="invoice_date_due" position="attributes">
+                <attribute name="widget" />
+            </field>
+        </field>
+    </record>
+
+    <!-- v14: a second record removed the legacy modifiers of the tax-by-group
+         field in the invoice form so taxes by group were always shown. In v18
+         that field is gone: tax totals are rendered through the
+         tax_totals widget and are always visible, so the record is dropped. -->
+</odoo>

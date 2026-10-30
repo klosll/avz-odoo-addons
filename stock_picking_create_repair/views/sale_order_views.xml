@@ -142,7 +142,7 @@
         <field name="repair_amount_untaxed" readonly="1" optional="show" />
       </xpath>
       <!--
-            <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom_qty']" position="after">
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_qty']" position="after">
                 <field name="qty_delivered" readonly="1" optional="show" />
             </xpath>
             -->

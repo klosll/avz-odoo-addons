@@ -87,10 +87,10 @@
                           <t t-esc="move.lot_id.name or ''" />
                         </td>
                         <td>
-                          <t t-esc="'%.2f' % (move.qty_done or 0.0)" />
+                          <t t-esc="'%.2f' % (move.quantity or 0.0)" />
                           <t
                             t-set="total_quantity"
-                            t-value="total_quantity + (move.qty_done or 0.0)"
+                            t-value="total_quantity + (move.quantity or 0.0)"
                           />
                         </td>
                         <td>

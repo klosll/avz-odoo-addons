@@ -346,7 +346,7 @@ class StockPickingImportLine(models.Model):
                                 {
                                     "product_id": line.picking_product_id.id,
                                     "lot_id": line.picking_lot_id.id,
-                                    "qty_done": line.picking_qty_done,
+                                    "quantity": line.picking_qty_done,
                                     "product_uom_id": (
                                         line.picking_product_id.uom_id.id
                                     ),

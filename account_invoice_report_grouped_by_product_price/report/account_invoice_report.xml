@@ -103,10 +103,10 @@
               </th>
               <th name="th_subtotal" class="text-right">
                 <span
-                  groups="account.group_show_line_subtotals_tax_excluded"
+                  groups="base.group_user"
                 >Amount</span>
                 <span
-                  groups="account.group_show_line_subtotals_tax_included"
+                  groups="base.group_user,!base.group_user"
                 >Total Price</span>
               </th>
             </tr>
@@ -131,12 +131,12 @@
                   <span
                     class="text-nowrap"
                     t-esc="line['price_subtotal']"
-                    groups="account.group_show_line_subtotals_tax_excluded"
+                    groups="base.group_user"
                   />
                   <span
                     class="text-nowrap"
                     t-esc="line['price_total']"
-                    groups="account.group_show_line_subtotals_tax_included"
+                    groups="base.group_user,!base.group_user"
                   />
                 </td>
               </tr>

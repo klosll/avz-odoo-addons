@@ -15,18 +15,18 @@ class StockMoveLine(models.Model):
                 and line.product_id.tracking != "none"
                 and line.picking_id.state == "done"
             ):
-                line.qty_done = 0
+                line.quantity = 0
 
-    @api.onchange("qty_done")
-    def _onchange_qty_done_require_lot(self):
+    @api.onchange("quantity")
+    def _onchange_quantity_require_lot(self):
         for line in self:
             if (
-                line.qty_done > 0
+                line.quantity > 0
                 and not line.lot_id
                 and line.product_id.tracking != "none"
                 and line.picking_id.state == "done"
             ):
-                line.qty_done = 0
+                line.quantity = 0
                 raise UserError(
                     _(
                         "You must set a lot/serial number on line '%s' before"
