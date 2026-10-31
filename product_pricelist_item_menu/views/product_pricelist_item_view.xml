@@ -97,4 +97,17 @@
       </filter>
     </field>
   </record>
+  <record id="product_pricelist_item_menu_action" model="ir.actions.act_window">
+    <field name="name">Pricelist Items</field>
+    <field name="type">ir.actions.act_window</field>
+    <field name="res_model">product.pricelist.item</field>
+    <field name="view_mode">list,form</field>
+  </record>
+  <menuitem
+    id="menu_product_pricelist_item_action"
+    action="product_pricelist_item_menu.product_pricelist_item_menu_action"
+    parent="sale.product_menu_catalog"
+    groups="sales_team.group_sale_manager"
+    sequence="10"
+  />
 </odoo>
