@@ -1,6 +1,7 @@
 # Copyright 2023 Berezi Amubieta - AvanzOSC
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 from odoo import api, fields, models
+from odoo.tools.float_utils import float_is_zero
 
 
 class PurchaseOrder(models.Model):
@@ -96,8 +97,14 @@ class PurchaseOrder(models.Model):
 
     @api.depends("order_line", "order_line.qty_to_invoice")
     def _compute_qty_to_invoice(self):
+        dp = self.env["decimal.precision"].precision_get("Product Unit of Measure")
         for purchase in self:
-            purchase.qty_to_invoice = sum(purchase.order_line.mapped("qty_to_invoice"))
+            qty_to_invoice = sum(purchase.order_line.mapped("qty_to_invoice"))
+            purchase.qty_to_invoice = qty_to_invoice
+            # v18: purchase_open_qty comparte este compute para pending_qty_to_invoice
+            purchase.pending_qty_to_invoice = not float_is_zero(
+                qty_to_invoice, precision_digits=dp
+            )
 
     @api.depends("order_line", "order_line.qty_invoiced")
     def _compute_qty_invoiced(self):
@@ -107,7 +114,10 @@ class PurchaseOrder(models.Model):
     @api.depends("order_line", "order_line.qty_to_receive")
     def _compute_qty_to_receive(self):
         for purchase in self:
-            purchase.qty_to_receive = sum(purchase.order_line.mapped("qty_to_receive"))
+            qty_to_receive = sum(purchase.order_line.mapped("qty_to_receive"))
+            purchase.qty_to_receive = qty_to_receive
+            # v18: purchase_open_qty comparte este compute para pending_qty_to_receive
+            purchase.pending_qty_to_receive = qty_to_receive > 0.0
 
     @api.depends("order_line", "order_line.qty_received")
     def _compute_qty_received(self):

@@ -1,76 +1,116 @@
-odoo.define("website_custom_saca.script", function (require) {
-  "use strict";
-  var ajax = require("web.ajax");
+/** @odoo-module **/
 
-  check_checkboxes();
+// v18: portado desde el JS legacy v14 (odoo.define + require("web.ajax") + jQuery)
+// a módulo ESM con fetch nativo. Mismo comportamiento: marcar checkboxes,
+// alternar edición de la línea de saca, enviar la línea y subir imágenes.
 
-  function check_checkboxes() {
-    var chboxes = $("input.checked");
-    if (chboxes.length > 0) {
-      $(chboxes).attr("checked", true);
+function getCsrfToken() {
+    const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+    return match ? match[1] : "";
+}
+
+function post(url, data) {
+    // Paridad con web.ajax.post: envío tipo formulario con csrf_token
+    const body = new FormData();
+    for (const [key, value] of Object.entries(data)) {
+        body.append(key, value);
     }
-  }
+    body.append("csrf_token", getCsrfToken());
+    return fetch(url, { method: "POST", body });
+}
 
-  $("#btn_saca_edit_2").click(function () {
-    $("#btn_saca_edit").trigger("click");
-  });
-  $("#btn_saca_edit").click(function () {
-    var first = $(".weight_input")[0];
-    if ($(first).css("display") == "none") {
-      $(".info_span").css("display", "none");
-      $(".weight_input").css("display", "block");
-      $(".saca_input").css("display", "initial");
-      $(".saca_input_file").css("display", "initial");
-      $(".unload_input").css("display", "initial");
-      $("#btn_saca_save").css("display", "block");
-      $("#btn_saca_save_2").css("display", "block");
-      $("#btn_saca_edit").css("display", "none");
-      $("#btn_saca_edit_2").css("display", "none");
-      $("#img_origin").css("display", "block");
-      $("#img_dest").css("display", "block");
-      $("#chbx_fork").removeAttr("disabled");
-    } else {
-      $(".info_span").css("display", "block");
-      $(".weight_input").css("display", "none");
-      $(".unload_input").css("display", "none");
-      $(".saca_input").css("display", "none");
-      $(".saca_input_file").css("display", "none");
-      $(".chbx_fork").attr("disabled", "disabled");
-      $("#img_origin").css("display", "none");
-      $("#img_dest").css("display", "none");
+function checkCheckboxes() {
+    document.querySelectorAll("input.checked").forEach((el) => {
+        el.checked = true;
+    });
+}
+
+function initSacaScripts() {
+    checkCheckboxes();
+
+    const btnEdit = document.getElementById("btn_saca_edit");
+    const btnEdit2 = document.getElementById("btn_saca_edit_2");
+    const btnSend = document.getElementById("btn_saca_send");
+    const btnUpload = document.getElementById("upload_img");
+
+    if (btnEdit2 && btnEdit) {
+        btnEdit2.addEventListener("click", () => btnEdit.click());
     }
-  });
 
-  $("#btn_saca_send").click(function () {
-    var id = $(this).attr("value");
-    var self = this;
-    ajax.post("/saca/line/send/" + id, {}).then(function (result) {
-      console.log(result);
+    if (btnEdit) {
+        btnEdit.addEventListener("click", () => {
+            const first = document.querySelector(".weight_input");
+            const shown = first && getComputedStyle(first).display !== "none";
+            const display = (sel, value) =>
+                document.querySelectorAll(sel).forEach((el) => (el.style.display = value));
+            if (!shown) {
+                display(".info_span", "none");
+                display(".weight_input", "block");
+                display(".saca_input", "initial");
+                display(".saca_input_file", "initial");
+                display(".unload_input", "initial");
+                display("#btn_saca_save", "block");
+                display("#btn_saca_save_2", "block");
+                display("#btn_saca_edit", "none");
+                display("#btn_saca_edit_2", "none");
+                display("#img_origin", "block");
+                display("#img_dest", "block");
+                const chbx = document.getElementById("chbx_fork");
+                if (chbx) {
+                    chbx.removeAttribute("disabled");
+                }
+            } else {
+                display(".info_span", "block");
+                display(".weight_input", "none");
+                display(".unload_input", "none");
+                display(".saca_input", "none");
+                display(".saca_input_file", "none");
+                document
+                    .querySelectorAll(".chbx_fork")
+                    .forEach((el) => el.setAttribute("disabled", "disabled"));
+                display("#img_origin", "none");
+                display("#img_dest", "none");
+            }
+        });
+    }
+
+    if (btnSend) {
+        btnSend.addEventListener("click", () => {
+            const id = btnSend.getAttribute("value");
+            post(`/saca/line/send/${id}`, {}).then((result) => {
+                console.log(result);
+            });
+        });
+    }
+
+    document.querySelectorAll(".ticket_upload").forEach((el) => {
+        el.addEventListener("change", () => {
+            console.log(el.previousElementSibling);
+            if (el.previousElementSibling) {
+                el.previousElementSibling.style.display = "block";
+            }
+        });
     });
-  });
 
-  $(".ticket_upload").change(function () {
-    console.log($(this).prev("button"));
-    $(this).prev("button").css("display", "block");
-  });
+    if (btnUpload) {
+        btnUpload.addEventListener("click", () => {
+            const fileInput = btnUpload.nextElementSibling;
+            const sacaLineId = document.getElementById("current_saca_line")?.value;
+            const data = {
+                image_field: fileInput ? fileInput.getAttribute("name") : "",
+            };
+            if (fileInput && fileInput.files && fileInput.files.length) {
+                data.image_file = fileInput.files[fileInput.files.length - 1];
+            }
+            post(`/my/saca/line/${sacaLineId}/binary`, data).then(() => {
+                window.location.href = `/my/saca/line/${sacaLineId}`;
+            });
+        });
+    }
+}
 
-  $("#upload_img").click(function () {
-    var fileInput = $(this).next("input");
-    var saca_line_id = $("#current_saca_line").val();
-    var data = {
-      image_field: $(fileInput).attr("name"),
-    };
-    $.each(fileInput, function (outer_index, input) {
-      $.each($(input).prop("files"), function (index, file) {
-        data.image_file = file;
-      });
-    });
-    ajax
-      .post("/my/saca/line/" + saca_line_id + "/binary", data)
-      .then(function (result) {
-        console.log(result);
-        window.location.href = "/my/saca/line/" + saca_line_id;
-        // Location.reload();
-      });
-  });
-});
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initSacaScripts);
+} else {
+    initSacaScripts();
+}

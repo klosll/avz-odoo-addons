@@ -11,7 +11,8 @@ class ProductCostSecurityMixin(models.AbstractModel):
         if (
             self._name == "product.product"
             and operation == "read"
-            and "standard_price" in fields
+            # v18: read() sin campos concreta pasa fields=None (= todos, incluye standard_price)
+            and (not fields or "standard_price" in fields)
             and not self.env.user.has_group("product_cost_security.group_product_cost")
         ):
             return super(

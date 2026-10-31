@@ -855,20 +855,20 @@
                     />
                                     </td>
                                 </tr>
-                                <t t-set="lots" t-value="{'lots':[]}" />
+                                <t t-set="lots" t-value="[]" />
                                 <tr
                   t-foreach="feed_move_lines"
                   t-as="line"
                   name="feed_move_lines"
                 >
                                     <t
-                    t-set="lots['lots']"
-                    t-if="feed_move_lines.lot_id and feed_move_lines.lot_id not in lots['lots']"
-                    t-value="lots['lots'].append(feed_move_lines.lot_id)"
+                    t-set="lots_added"
+                    t-if="feed_move_lines.lot_id and feed_move_lines.lot_id not in lots"
+                    t-value="lots.append(feed_move_lines.lot_id)"
                   />
                                 </tr>
                                 <tr
-                  t-foreach="lots['lots'][0].sorted(key=lambda r: r.name)"
+                  t-foreach="lots and lots[0].sorted(key=lambda r: r.name) or []"
                   t-as="line"
                   name="lots"
                 >

@@ -12,7 +12,8 @@ class ProductProduct(models.Model):
     )
 
     def _compute_auxiliar(self):
-        return True
+        for product in self:
+            product.product_id_computed = True
 
     def _search_contact_products(self, operator, value):
         partner_id = value
