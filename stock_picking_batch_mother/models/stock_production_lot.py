@@ -19,7 +19,6 @@ class StockProductionLot(models.Model):
     )
     requires_mother = fields.Boolean(
         string="Requires Mother",
-        default=False,
         related="product_id.requires_mother",
         store=True,
     )

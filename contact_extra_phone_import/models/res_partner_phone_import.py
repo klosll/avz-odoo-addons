@@ -80,26 +80,21 @@ class ResPartnerPhoneImportLine(models.Model):
     )
     contact_id = fields.Many2one(string="Contact", comodel_name="res.partner")
     contact_name = fields.Char(
-        states={"done": [("readonly", True)]},
         copy=False,
     )
     contact_code = fields.Char(
-        states={"done": [("readonly", True)]},
         copy=False,
     )
     contact_description = fields.Char(
         string="Description",
-        states={"done": [("readonly", True)]},
         copy=False,
     )
     contact_phone = fields.Char(
         string="Phone",
-        states={"done": [("readonly", True)]},
         copy=False,
     )
     contact_email = fields.Char(
         string="Email",
-        states={"done": [("readonly", True)]},
         copy=False,
     )
 
