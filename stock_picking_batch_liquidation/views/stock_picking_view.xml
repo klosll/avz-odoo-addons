@@ -1,13 +1,25 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
+  <!-- Esta vista solo se usa referenciada por id (albaranes de lotes cerrados
+       en stock_picking_batch.action_view_picking). La prioridad debe ser alta
+       para que NO gane ir.ui.view.default_view('stock.picking', 'list') y
+       oculte el botón "Nuevo" en el resto de listas de albaranes. -->
   <record id="closed_picking_tree_view" model="ir.ui.view">
     <field name="model">stock.picking</field>
     <field name="inherit_id" ref="stock.vpicktree" />
     <field name="mode">primary</field>
+    <field name="priority">100</field>
     <field name="arch" type="xml">
       <list position="attributes">
         <attribute name="create">0</attribute>
       </list>
     </field>
+  </record>
+
+  <!-- Mismo caso: stock_picking_view_batch_tree_ref es primary con prioridad 16
+       y gana a stock.vpicktree (prioridad 20 en esta BD). Solo debe usarse por
+       referencia explícita (list_view_ref en el formulario de stock.picking.batch). -->
+  <record id="stock_picking_batch.stock_picking_view_batch_tree_ref" model="ir.ui.view">
+    <field name="priority">100</field>
   </record>
 </odoo>
