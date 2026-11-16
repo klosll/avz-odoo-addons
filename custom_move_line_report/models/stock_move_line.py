@@ -6,25 +6,24 @@ from odoo import fields, models
 class StockMoveLine(models.Model):
     _inherit = "stock.move.line"
 
-    egg = fields.Boolean(string="Egg", related="product_id.egg", store=True)
+    # Estos campos se calculan al vuelo. No se almacenan para evitar que la
+    # instalación tenga que recalcularlos sobre todos los stock.move.line.
+    egg = fields.Boolean(string="Egg", related="product_id.egg")
     batch_location_id = fields.Many2one(
         string="Mother Location",
         comodel_name="stock.location",
         related="batch_id.location_id",
-        store=True,
     )
     batch_category_type_id = fields.Many2one(
         string="Batch Section",
         comodel_name="category.type",
         related="batch_location_id.type_id",
-        store=True,
     )
     product_category_type_id = fields.Many2one(
         string="Product Category Section",
         comodel_name="category.type",
         related="product_category_id.type_id",
-        store=True,
     )
     show_in_report = fields.Boolean(
-        string="Show in Report", related="picking_id.show_in_report", store=True
+        string="Show in Report", related="picking_id.show_in_report"
     )

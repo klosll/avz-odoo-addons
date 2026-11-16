@@ -301,7 +301,12 @@ msgstr ""
 #. module: custom_move_line_report
 #. odoo-python
 #: code:addons/custom_move_line_report/reports/stock_move_line_report.py:0
-msgid "Stock Move Report"
+msgid "Entries/Outputs Report"
+msgstr ""
+
+#. module: custom_move_line_report
+#: model_terms:ir.ui.view,arch_db:custom_move_line_report.stock_move_line_report_view_search
+msgid "Sale Type"
 msgstr ""
 
 #. module: custom_move_line_report

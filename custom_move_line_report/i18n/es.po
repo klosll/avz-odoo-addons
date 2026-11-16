@@ -226,6 +226,12 @@ msgid "Picking Type"
 msgstr "Tipo de operación"
 
 #. module: custom_move_line_report
+#: model:ir.model.fields,field_description:custom_move_line_report.field_stock_move_line_report__sale_type_id
+#: model_terms:ir.ui.view,arch_db:custom_move_line_report.stock_move_line_report_view_search
+msgid "Sale Type"
+msgstr "Tipo de pedido de venta"
+
+#. module: custom_move_line_report
 #: model:ir.model.fields,field_description:custom_move_line_report.field_stock_move_line_report__product_id
 #: model_terms:ir.ui.view,arch_db:custom_move_line_report.stock_move_line_report_view_search
 msgid "Product"
@@ -301,8 +307,8 @@ msgstr "Infome de movimientos de producto"
 #. module: custom_move_line_report
 #. odoo-python
 #: code:addons/custom_move_line_report/reports/stock_move_line_report.py:0
-msgid "Stock Move Report"
-msgstr ""
+msgid "Entries/Outputs Report"
+msgstr "Informe entradas/salidas"
 
 #. module: custom_move_line_report
 #: model_terms:ir.ui.view,arch_db:custom_move_line_report.stock_move_line_report_view_search

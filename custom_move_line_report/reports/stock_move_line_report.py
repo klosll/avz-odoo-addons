@@ -149,6 +149,11 @@ class StockMoveLineReport(models.Model):
         comodel_name="stock.picking.type",
         readonly=True,
     )
+    sale_type_id = fields.Many2one(
+        string="Sale Type",
+        comodel_name="sale.order.type",
+        readonly=True,
+    )
     ref = fields.Char(
         string="Reference",
         readonly=True,
@@ -160,14 +165,8 @@ class StockMoveLineReport(models.Model):
 
     def action_view_move_report(self):
         context = self.env.context.copy()
-        cron = self.env.ref(
-            "custom_move_line_report.refresh_materialized_view",
-            raise_if_not_found=False,
-        )
-        if cron:
-            cron.sudo().method_direct_trigger()
         return {
-            "name": _("Stock Move Report"),
+            "name": _("Entries/Outputs Report"),
             "view_mode": "pivot,list",
             "res_model": "stock.move.line.report",
             "type": "ir.actions.act_window",
@@ -180,25 +179,65 @@ class StockMoveLineReport(models.Model):
             "selection"
         ]
 
+    def _is_materialized_view_populated(self):
+        self.env.cr.execute(
+            """
+            SELECT relispopulated
+              FROM pg_class
+             WHERE relname = %s
+               AND relkind = 'm'
+            """,
+            (self._table,),
+        )
+        row = self.env.cr.fetchone()
+        return bool(row and row[0])
+
     @api.model
     def refresh_view(self):
-        self.env.cr.execute(
-            "refresh materialized view %s",
-            (AsIs(self._table),),
-        )
+        if self._is_materialized_view_populated():
+            # Igual que en Odoo 14: no bloquea las lecturas del informe.
+            self.env.cr.execute(
+                "refresh materialized view concurrently %s",
+                (AsIs(self._table),),
+            )
+        else:
+            # Primera carga: CONCURRENTLY no está permitido si la vista
+            # todavía no ha sido poblada.
+            self.env.cr.execute(
+                "refresh materialized view %s",
+                (AsIs(self._table),),
+            )
 
     def _create_materialized_view(self):
         self.env.cr.execute(
             "DROP MATERIALIZED VIEW IF EXISTS %s CASCADE", (AsIs(self._table),)
         )
+        # La vista se crea vacía para que la instalación no tenga que leer ni
+        # materializar todo stock_move_line. Se llenará con el cron de refresco
+        # o con la acción manual "Refresh Table".
         self.env.cr.execute(
             """
             CREATE MATERIALIZED VIEW stock_move_line_report AS %(select)s
+            WITH NO DATA
         """,
             {
                 "select": AsIs(self._select()),
             },
         )
+        # Índice único necesario para REFRESH MATERIALIZED VIEW CONCURRENTLY.
+        self.env.cr.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS stock_move_line_report_id_uniq "
+            f"ON {self._table} (id)"
+        )
+        for index_name, columns in (
+            ("stock_move_line_report_date_idx", "date"),
+            ("stock_move_line_report_product_date_idx", "product_id, date"),
+            ("stock_move_line_report_product_lot_idx", "product_id, lot_id"),
+        ):
+            self.env.cr.execute(
+                f"CREATE INDEX IF NOT EXISTS {index_name} "
+                f"ON {self._table} ({columns})"
+            )
         cron = self.env.ref(
             "custom_move_line_report.refresh_materialized_view",
             raise_if_not_found=False,
@@ -248,6 +287,7 @@ class StockMoveLineReport(models.Model):
             line.move_id,
             line.picking_id,
             line.picking_type_id,
+            line.sale_type_id,
             line.ref,
             line.production_id,
             line.partner_id,
@@ -284,14 +324,14 @@ class StockMoveLineReport(models.Model):
                     stock_move_line.move_id AS move_id,
                     stock_move_line.picking_id AS picking_id,
                     stock_move_line.picking_type_id AS picking_type_id,
+                    picking.sale_type_id AS sale_type_id,
                     stock_move_line.picking_partner_id AS partner_id,
                     stock_move_line.production_id AS production_id,
                     stock_move_line.product_id AS product_id,
-                    stock_move_line.product_category_type_id
-                        AS product_category_type_id,
+                    product_category.type_id AS product_category_type_id,
                     stock_move_line.product_category_id AS product_category_id,
                     stock_move_line.reference AS ref,
-                    stock_move_line.egg AS egg,
+                    product_tmpl.egg AS egg,
                     stock_move_line.date AS date,
                     stock_move_line.lot_id AS lot_id,
                     location_id.id AS location_id,
@@ -303,9 +343,8 @@ class StockMoveLineReport(models.Model):
                     {type_category_id} AS type_category_id,
                     stock_move_line.batch_id AS batch_id,
                     stock_move_line.mother_id AS mother_id,
-                    stock_move_line.batch_location_id AS batch_location_id,
-                    stock_move_line.batch_category_type_id
-                        AS batch_category_type_id,
+                    batch.location_id AS batch_location_id,
+                    batch_location.type_id AS batch_category_type_id,
                     stock_move_line.owner_id AS owner_id,
                     stock_move_line.download_unit * (-1) AS download_unit,
                     0 AS entry_unit,
@@ -317,7 +356,7 @@ class StockMoveLineReport(models.Model):
                     0 AS entry_amount,
                     stock_move_line.amount * (-1) AS output_amount,
                     stock_move_line.state AS state,
-                    stock_move_line.show_in_report AS show_in_report,
+                    picking.show_in_report AS show_in_report,
                     stock_move_line.company_id AS company_id
                 FROM
                 stock_move_line
@@ -326,20 +365,32 @@ class StockMoveLineReport(models.Model):
                 JOIN
                     stock_location AS location_id ON
                        stock_move_line.location_id = location_id.id
-                UNION
+                LEFT JOIN product_product AS product ON
+                        stock_move_line.product_id = product.id
+                LEFT JOIN product_template AS product_tmpl ON
+                        product.product_tmpl_id = product_tmpl.id
+                LEFT JOIN product_category AS product_category ON
+                        stock_move_line.product_category_id = product_category.id
+                LEFT JOIN stock_picking_batch AS batch ON
+                        stock_move_line.batch_id = batch.id
+                LEFT JOIN stock_location AS batch_location ON
+                        batch.location_id = batch_location.id
+                LEFT JOIN stock_picking AS picking ON
+                        stock_move_line.picking_id = picking.id
+                UNION ALL
                 SELECT
                     stock_move_line.id AS move_line_id,
                     stock_move_line.move_id AS move_id,
                     stock_move_line.picking_id AS picking_id,
                     stock_move_line.picking_type_id AS picking_type_id,
+                    picking.sale_type_id AS sale_type_id,
                     stock_move_line.picking_partner_id AS partner_id,
                     stock_move_line.production_id AS production_id,
                     stock_move_line.product_id AS product_id,
-                    stock_move_line.product_category_type_id
-                        AS product_category_type_id,
+                    product_category.type_id AS product_category_type_id,
                     stock_move_line.product_category_id AS product_category_id,
                     stock_move_line.reference AS ref,
-                    stock_move_line.egg AS egg,
+                    product_tmpl.egg AS egg,
                     stock_move_line.date AS date,
                     stock_move_line.lot_id AS lot_id,
                     location_id.id AS location_id,
@@ -351,9 +402,8 @@ class StockMoveLineReport(models.Model):
                     {type_category_id} AS type_category_id,
                     stock_move_line.batch_id AS batch_id,
                     stock_move_line.mother_id AS mother_id,
-                    stock_move_line.batch_location_id AS batch_location_id,
-                    stock_move_line.batch_category_type_id
-                       AS batch_category_type_id,
+                    batch.location_id AS batch_location_id,
+                    batch_location.type_id AS batch_category_type_id,
                     stock_move_line.owner_id AS owner_id,
                     stock_move_line.download_unit AS download_unit,
                     stock_move_line.download_unit AS entry_unit,
@@ -365,7 +415,7 @@ class StockMoveLineReport(models.Model):
                     stock_move_line.amount AS entry_amount,
                     0 AS output_amount,
                     stock_move_line.state AS state,
-                    stock_move_line.show_in_report AS show_in_report,
+                    picking.show_in_report AS show_in_report,
                     stock_move_line.company_id AS company_id
                 FROM
                 stock_move_line
@@ -374,20 +424,32 @@ class StockMoveLineReport(models.Model):
                 JOIN
                     stock_location AS location_id ON
                        stock_move_line.location_dest_id = location_id.id
-                UNION
+                LEFT JOIN product_product AS product ON
+                        stock_move_line.product_id = product.id
+                LEFT JOIN product_template AS product_tmpl ON
+                        product.product_tmpl_id = product_tmpl.id
+                LEFT JOIN product_category AS product_category ON
+                        stock_move_line.product_category_id = product_category.id
+                LEFT JOIN stock_picking_batch AS batch ON
+                        stock_move_line.batch_id = batch.id
+                LEFT JOIN stock_location AS batch_location ON
+                        batch.location_id = batch_location.id
+                LEFT JOIN stock_picking AS picking ON
+                        stock_move_line.picking_id = picking.id
+                UNION ALL
                 SELECT
                     stock_move_line.id AS move_line_id,
                     stock_move_line.move_id AS move_id,
                     stock_move_line.picking_id AS picking_id,
                     stock_move_line.picking_type_id AS picking_type_id,
+                    picking.sale_type_id AS sale_type_id,
                     stock_move_line.picking_partner_id AS partner_id,
                     stock_move_line.production_id AS production_id,
                     stock_move_line.product_id AS product_id,
-                    stock_move_line.product_category_type_id
-                        AS product_category_type_id,
+                    product_category.type_id AS product_category_type_id,
                     stock_move_line.product_category_id AS product_category_id,
                     stock_move_line.reference AS ref,
-                    stock_move_line.egg AS egg,
+                    product_tmpl.egg AS egg,
                     stock_move_line.date AS date,
                     stock_move_line.lot_id AS lot_id,
                     location_id.id AS location_id,
@@ -399,8 +461,8 @@ class StockMoveLineReport(models.Model):
                     {type_category_output} AS type_category_id,
                     stock_move_line.batch_id AS batch_id,
                     stock_move_line.mother_id AS mother_id,
-                    stock_move_line.batch_location_id AS batch_location_id,
-                    stock_move_line.batch_category_type_id AS batch_category_type_id,
+                    batch.location_id AS batch_location_id,
+                    location_id.type_id AS batch_category_type_id,
                     stock_move_line.owner_id AS owner_id,
                     stock_move_line.download_unit * (-1) AS download_unit,
                     0 AS entry_unit,
@@ -412,32 +474,42 @@ class StockMoveLineReport(models.Model):
                     0 AS entry_amount,
                     stock_move_line.amount * (-1) AS output_amount,
                     stock_move_line.state AS state,
-                    stock_move_line.show_in_report AS show_in_report,
+                    picking.show_in_report AS show_in_report,
                     stock_move_line.company_id AS company_id
                 FROM
                 stock_move_line
+                JOIN stock_picking_batch AS batch ON
+                        stock_move_line.batch_id = batch.id
                 JOIN
                     stock_location AS location_id ON
-                       stock_move_line.batch_location_id = location_id.id
+                       batch.location_id = location_id.id
                 JOIN stock_location AS location_origin_id ON
                         stock_move_line.location_id = location_origin_id.id
+                LEFT JOIN product_product AS product ON
+                        stock_move_line.product_id = product.id
+                LEFT JOIN product_template AS product_tmpl ON
+                        product.product_tmpl_id = product_tmpl.id
+                LEFT JOIN product_category AS product_category ON
+                        stock_move_line.product_category_id = product_category.id
+                LEFT JOIN stock_picking AS picking ON
+                        stock_move_line.picking_id = picking.id
                 WHERE
                     location_origin_id.usage = 'production' AND
                     stock_move_line.batch_id IS NOT NULL
-                UNION
+                UNION ALL
                 SELECT
                     stock_move_line.id AS move_line_id,
                     stock_move_line.move_id AS move_id,
                     stock_move_line.picking_id AS picking_id,
                     stock_move_line.picking_type_id AS picking_type_id,
-                    stock_move_line.production_id AS production_id,
+                    picking.sale_type_id AS sale_type_id,
                     stock_move_line.picking_partner_id AS partner_id,
+                    stock_move_line.production_id AS production_id,
                     stock_move_line.product_id AS product_id,
-                    stock_move_line.product_category_type_id
-                        AS product_category_type_id,
-                    stock_move_line.product_category_id AS product_category__id,
+                    product_category.type_id AS product_category_type_id,
+                    stock_move_line.product_category_id AS product_category_id,
                     stock_move_line.reference AS ref,
-                    stock_move_line.egg AS egg,
+                    product_tmpl.egg AS egg,
                     stock_move_line.date AS date,
                     stock_move_line.lot_id AS lot_id,
                     location_id.id AS location_id,
@@ -449,8 +521,8 @@ class StockMoveLineReport(models.Model):
                     {type_category_entry} AS type_category_id,
                     stock_move_line.batch_id AS batch_id,
                     stock_move_line.mother_id AS mother_id,
-                    stock_move_line.batch_location_id AS batch_location_id,
-                    stock_move_line.batch_category_type_id AS batch_category_type_id,
+                    batch.location_id AS batch_location_id,
+                    location_id.type_id AS batch_category_type_id,
                     stock_move_line.owner_id AS owner_id,
                     stock_move_line.download_unit AS download_unit,
                     stock_move_line.download_unit AS entry_unit,
@@ -462,15 +534,25 @@ class StockMoveLineReport(models.Model):
                     stock_move_line.amount AS entry_amount,
                     0 AS output_amount,
                     stock_move_line.state AS state,
-                    stock_move_line.show_in_report AS show_in_report,
+                    picking.show_in_report AS show_in_report,
                     stock_move_line.company_id AS company_id
                 FROM
                 stock_move_line
+                JOIN stock_picking_batch AS batch ON
+                        stock_move_line.batch_id = batch.id
                 JOIN
                     stock_location AS location_id ON
-                       stock_move_line.batch_location_id = location_id.id
+                       batch.location_id = location_id.id
                 JOIN stock_location AS location_origin_id ON
                         stock_move_line.location_id = location_origin_id.id
+                LEFT JOIN product_product AS product ON
+                        stock_move_line.product_id = product.id
+                LEFT JOIN product_template AS product_tmpl ON
+                        product.product_tmpl_id = product_tmpl.id
+                LEFT JOIN product_category AS product_category ON
+                        stock_move_line.product_category_id = product_category.id
+                LEFT JOIN stock_picking AS picking ON
+                        stock_move_line.picking_id = picking.id
                 WHERE
                     location_origin_id.usage = 'production' AND
                     stock_move_line.batch_id IS NOT NULL

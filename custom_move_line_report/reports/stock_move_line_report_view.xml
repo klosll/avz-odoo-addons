@@ -143,6 +143,8 @@
         <field name="type_id" />
         <field name="product_category_type_id" />
         <field name="picking_id" />
+        <field name="picking_type_id" />
+        <field name="sale_type_id" />
         <field name="batch_id" />
         <field name="mother_id" />
         <field name="production_id" />
@@ -232,6 +234,11 @@
             name="groupby_picking_type"
             string="Picking Type"
             context="{'group_by':'picking_type_id'}"
+          />
+          <filter
+            name="groupby_sale_type"
+            string="Sale Type"
+            context="{'group_by':'sale_type_id'}"
           />
           <filter
             name="groupby_batch"
