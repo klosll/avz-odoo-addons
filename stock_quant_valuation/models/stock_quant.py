@@ -27,6 +27,7 @@ class StockQuant(models.Model):
     lot_cost = fields.Float(
         compute="_compute_lot_cost",
         store=True,
+        company_dependent=True,
         min_display_digits="Product Price",
         groups="stock.group_stock_manager",
         help=("Unit price of the lot if lot, otherwise purchase last price."),
@@ -37,6 +38,7 @@ class StockQuant(models.Model):
         min_display_digits="Product Price",
         groups="stock.group_stock_manager",
         store=True,
+        company_dependent=True,
         help=("Quant quantity multiplied by the lot cost."),
     )
     cost_mismatch = fields.Boolean(compute="_compute_cost_mismatch", store=True)
