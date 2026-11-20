@@ -175,7 +175,7 @@
               name="move_line_ids"
               options="{'create': false}"
               nolabel="1"
-              context="{'tree_view_ref': 'stock_picking_batch.view_move_line_tree'}"
+              context="{'list_view_ref': 'stock_picking_batch.view_move_line_tree'}"
               readonly="is_canceled"
             />
           </group>

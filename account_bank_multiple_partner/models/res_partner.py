@@ -19,12 +19,15 @@ class ResPartnerBank(models.Model):
 
     @api.constrains("sanitized_acc_number", "company_id", "is_shared")
     def _check_bank_number(self):
-        number = self.search(
-            [
-                ("sanitized_acc_number", "=", self.sanitized_acc_number),
-                ("company_id", "=", self.company_id.id),
-                ("is_shared", "=", False),
-            ]
-        )
-        if len(number) > 1:
-            raise ValidationError(_("Account Number must be unique"))
+        for record in self:
+            if record.is_shared:
+                continue
+            number = self.search(
+                [
+                    ("sanitized_acc_number", "=", record.sanitized_acc_number),
+                    ("company_id", "=", record.company_id.id),
+                    ("is_shared", "=", False),
+                ]
+            )
+            if len(number) > 1:
+                raise ValidationError(_("Account Number must be unique"))
