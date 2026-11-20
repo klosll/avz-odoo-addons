@@ -53,7 +53,7 @@
         <page
           string="Detailed Operations"
           name="detailed_operations_shown"
-          groups="stock_picking_usability.group_detailed_operations_visible"
+          invisible="not show_operations"
         >
           <field
             name="move_line_ids_without_package"

@@ -116,7 +116,9 @@
         </field>
       </page>
       <page name="detailed_operations_shown" position="attributes">
-        <attribute name="invisible">False</attribute>
+        <attribute
+          name="invisible"
+        >not show_operations and not burden_to_incubator</attribute>
       </page>
       <field name="move_line_ids_without_package" position="attributes">
         <attribute name="invisible">False</attribute>

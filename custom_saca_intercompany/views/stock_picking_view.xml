@@ -5,7 +5,7 @@
     <field name="inherit_id" ref="stock_move_qty_by_packaging.view_picking_form" />
     <field name="arch" type="xml">
       <field name="is_locked" position="after">
-        <field name="tolvasa" invisible="1" />
+        <field name="tolvasa" column_invisible="True" />
       </field>
       <field name="product_packaging_qty" position="attributes">
         <attribute name="column_invisible">parent.tolvasa</attribute>
