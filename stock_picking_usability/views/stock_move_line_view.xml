@@ -80,6 +80,11 @@
       <xpath expr="//field[@name='location_id']" position="attributes">
         <attribute name="optional">hide</attribute>
       </xpath>
+      <!-- Fecha de caducidad: oculta por defecto (en la mayoría de productos no
+           se usa), reactivable desde las columnas opcionales -->
+      <xpath expr="//field[@name='expiration_date']" position="attributes">
+        <attribute name="optional">hide</attribute>
+      </xpath>
     </field>
   </record>
 </odoo>
