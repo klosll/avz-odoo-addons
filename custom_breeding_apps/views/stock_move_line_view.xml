@@ -25,7 +25,9 @@
         />
       </field>
       <field name="lot_id" position="after">
-        <field name="warehouse_id" invisible="True" />
+        <!-- HT02687: auxiliar de cálculo de 'Resto': no debe renderizarse como
+             columna -->
+        <field name="warehouse_id" column_invisible="True" />
         <field
           name="rest"
           optional="show"
@@ -112,7 +114,9 @@
         <attribute
           name="column_invisible"
         >context.get('egg_production', False) or context.get('picking_code') == 'outgoing'</attribute>
-        <attribute name="optional">show</attribute>
+        <!-- HT02687: oculto por defecto; se puede mostrar desde las columnas
+             opcionales -->
+        <attribute name="optional">hide</attribute>
       </field>
       <field name="package_id" position="attributes">
         <attribute

@@ -64,6 +64,17 @@
       >
         <attribute name="column_invisible">True</attribute>
       </xpath>
+      <!-- HT02687: 'Tomar de' y el 'Hasta' que sale tras 'Fecha de caducidad'
+           (el location_dest_id del core) no deben mostrarse. -->
+      <xpath expr="//field[@name='quant_id']" position="attributes">
+        <attribute name="column_invisible">True</attribute>
+      </xpath>
+      <xpath
+        expr="//field[@name='location_dest_id'][@groups='stock.group_stock_multi_locations']"
+        position="attributes"
+      >
+        <attribute name="column_invisible">True</attribute>
+      </xpath>
     </field>
   </record>
 </odoo>
