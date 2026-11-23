@@ -18,6 +18,7 @@ msgstr ""
 #. module: product_packaging_palet
 #: model:ir.model.fields,field_description:product_packaging_palet.field_product_packaging__palet_qty
 #: model:ir.model.fields,field_description:product_packaging_palet.field_sale_order_line__palet_qty
+#: model:ir.model.fields,field_description:product_packaging_palet.field_stock_move_line__palet_qty
 msgid "Contained Palet Quantity"
 msgstr ""
 
@@ -29,6 +30,7 @@ msgstr ""
 #. module: product_packaging_palet
 #: model:ir.model.fields,field_description:product_packaging_palet.field_product_packaging__palet_id
 #: model:ir.model.fields,field_description:product_packaging_palet.field_sale_order_line__palet_id
+#: model:ir.model.fields,field_description:product_packaging_palet.field_stock_move_line__palet_id
 msgid "Palet"
 msgstr ""
 
