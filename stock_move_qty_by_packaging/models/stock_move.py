@@ -42,7 +42,11 @@ class StockMove(models.Model):
         precompute=False,
     )
     product_packaging_qty = fields.Float(
-        string="Packaging Quantity", compute="_compute_packaging_qty", store=True
+        string="Packaging Quantity",
+        compute="_compute_packaging_qty",
+        store=True,
+        # editable: valor manual hasta que las líneas lo recalculen (suma)
+        readonly=False,
     )
 
     @api.depends("move_line_ids", "move_line_ids.product_packaging_qty")

@@ -21,10 +21,10 @@ msgid "Packaging"
 msgstr "Empaquetado"
 
 #. module: stock_move_qty_by_packaging
-#: model:ir.model.fields,field_description:stock_move_qty_by_packaging.field_stock_move__product_packaging_qty
-#: model:ir.model.fields,field_description:stock_move_qty_by_packaging.field_stock_move_line__product_packaging_qty
+#: model:ir.model.fields,field_description:stock.field_stock_move__product_packaging_qty
+#: model:ir.model.fields,field_description:stock.field_stock_move_line__product_packaging_qty
 msgid "Packaging Quantity"
-msgstr "Cantidad de paquetes reservados"
+msgstr "Cantidad de paquetes"
 
 #. module: stock_move_qty_by_packaging
 #: model:ir.model,name:stock_move_qty_by_packaging.model_stock_move_line

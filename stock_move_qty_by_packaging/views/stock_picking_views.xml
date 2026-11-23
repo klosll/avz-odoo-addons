@@ -27,4 +27,22 @@
       </xpath>
     </field>
   </record>
+
+  <!-- Empaquetado y Cantidad de paquetes juntas, justo después de Descripción
+       (HT02687). priority=20 para aplicarse después de las vistas que insertan
+       la columna Descripción (stock_move_line_description) y Restrict Lot. -->
+  <record id="view_picking_form_packaging_position" model="ir.ui.view">
+    <field name="model">stock.picking</field>
+    <field name="inherit_id" ref="stock.view_picking_form" />
+    <field name="priority">20</field>
+    <field name="arch" type="xml">
+      <xpath
+        expr="//field[@name='move_ids_without_package']/list/field[@name='name'][not(@column_invisible)]"
+        position="after"
+      >
+        <field name="product_packaging_id" position="move" />
+        <field name="product_packaging_qty" position="move" />
+      </xpath>
+    </field>
+  </record>
 </odoo>
