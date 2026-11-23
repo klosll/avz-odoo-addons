@@ -18,6 +18,11 @@
           optional="show"
         />
       </field>
+      <!-- HT02687: Cantidad al final, después de Empaquetado y Cantidad de
+           paquetes -->
+      <field name="product_packaging_qty" position="after">
+        <field name="quantity" position="move" />
+      </field>
     </field>
   </record>
 

@@ -2,7 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 {
     "name": "Custom Breeding Apps",
-    "version": "18.0.1.0.2",
+    "version": "18.0.1.0.3",
     "author": "AvanzOSC",
     "category": "Inventory",
     "website": "https://github.com/avanzosc/odoo-addons",

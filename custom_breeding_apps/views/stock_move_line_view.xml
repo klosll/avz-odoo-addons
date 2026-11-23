@@ -30,7 +30,7 @@
         <field name="warehouse_id" column_invisible="True" />
         <field
           name="rest"
-          optional="show"
+          optional="hide"
           invisible="not warehouse_id"
           column_invisible="context.get('egg_production', False)"
         />

@@ -75,6 +75,11 @@
       >
         <attribute name="column_invisible">True</attribute>
       </xpath>
+      <!-- 'Desde' queda oculto por defecto (se puede mostrar desde las columnas
+           opcionales) -->
+      <xpath expr="//field[@name='location_id']" position="attributes">
+        <attribute name="optional">hide</attribute>
+      </xpath>
     </field>
   </record>
 </odoo>

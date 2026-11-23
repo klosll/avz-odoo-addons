@@ -8,7 +8,7 @@
         <field
           name="shipping_cost"
           sum="Total Shipping Cost"
-          optional="show"
+          optional="hide"
           readonly="state in ('done', 'cancel') or is_locked"
         />
       </field>
