@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+  <!-- HT02687: recuperar el checkbox "Mostrar operaciones detalladas"
+       (show_operations) en el formulario del tipo de operación, donde estaba en
+       v14. Es el campo que decide si el albarán muestra la solapa "Operaciones
+       detalladas"; Odoo lo dejó obsoleto en v17 y lo quitó de la vista al
+       eliminar la solapa. -->
+  <record id="view_picking_type_form_show_operations" model="ir.ui.view">
+    <field name="model">stock.picking.type</field>
+    <field name="inherit_id" ref="stock.view_picking_type_form" />
+    <field name="arch" type="xml">
+      <xpath expr="//group[@name='locations']" position="before">
+        <field name="show_operations" />
+      </xpath>
+    </field>
+  </record>
+</odoo>
