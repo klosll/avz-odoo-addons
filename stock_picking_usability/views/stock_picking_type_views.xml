@@ -9,9 +9,10 @@
     <field name="model">stock.picking.type</field>
     <field name="inherit_id" ref="stock.view_picking_type_form" />
     <field name="arch" type="xml">
-      <xpath expr="//group[@name='locations']" position="before">
+      <!-- HT02687: debajo de 'Utilizar existentes' (sitio de v14) -->
+      <field name="use_existing_lots" position="after">
         <field name="show_operations" />
-      </xpath>
+      </field>
     </field>
   </record>
 </odoo>
