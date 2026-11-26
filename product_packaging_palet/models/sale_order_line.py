@@ -6,8 +6,13 @@ from odoo import api, fields, models
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
+    # HT02687: semantica v14 (portada tal cual): el palet es un empaquetado
+    # generico (is_generic).
     palet_id = fields.Many2one(
-        string="Palet", comodel_name="stock.package.type", copy=False
+        string="Palet",
+        comodel_name="product.packaging",
+        copy=False,
+        domain="[('is_generic', '=', True)]",
     )
     palet_qty = fields.Float(
         string="Contained Palet Quantity",

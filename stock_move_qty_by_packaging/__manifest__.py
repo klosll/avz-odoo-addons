@@ -2,7 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 {
     "name": "Stock Move Qty By Packaging",
-    "version": "18.0.1.1.1",
+    "version": "18.0.1.2.0",
     "category": "Hidden",
     "license": "AGPL-3",
     "author": "AvanzOSC",
@@ -12,6 +12,7 @@
         "stock_move_line_force_done",
         "uom",
         "sale_order_line_qty_by_packaging",
+        "product_packaging_palet",
     ],
     "excludes": [],
     "data": [

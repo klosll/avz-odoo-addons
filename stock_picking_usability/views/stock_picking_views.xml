@@ -49,7 +49,7 @@
           name="groups"
         >stock_picking_usability.group_detailed_operations_visible</attribute>
       </button>
-      <page name="operations" position="after">
+      <page name="operations" position="before">
         <page
           string="Detailed Operations"
           name="detailed_operations_shown"

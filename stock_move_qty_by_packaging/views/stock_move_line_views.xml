@@ -17,11 +17,26 @@
           readonly="state in ('cancel', 'done')"
           optional="show"
         />
+        <field
+          name="palet_id"
+          options="{'no_create': True, 'no_create_edit':True, 'no_open': True}"
+          readonly="state in ('cancel', 'done')"
+          optional="show"
+          context="{'form_view_ref': 'product.product_packaging_form_view'}"
+        />
+        <field
+          name="palet_qty"
+          readonly="state in ('cancel', 'done')"
+          optional="show"
+        />
       </field>
-      <!-- HT02687: Cantidad al final, después de Empaquetado y Cantidad de
-           paquetes -->
-      <field name="product_packaging_qty" position="after">
+      <!-- HT02687: 'Hecho' (cantidad) al final, después de Empaquetado,
+           Cantidad de paquetes, Palet, Cantidad palet y Peso bruto -->
+      <field name="palet_qty" position="after">
         <field name="quantity" position="move" />
+      </field>
+      <field name="quantity" position="attributes">
+        <attribute name="string">Hecho</attribute>
       </field>
     </field>
   </record>
@@ -40,6 +55,18 @@
         />
         <field
           name="product_packaging_qty"
+          readonly="state in ('cancel', 'done')"
+          optional="show"
+        />
+        <field
+          name="palet_id"
+          options="{'no_create': True, 'no_create_edit':True, 'no_open': True}"
+          readonly="state in ('cancel', 'done')"
+          optional="show"
+          context="{'form_view_ref': 'product.product_packaging_form_view'}"
+        />
+        <field
+          name="palet_qty"
           readonly="state in ('cancel', 'done')"
           optional="show"
         />
