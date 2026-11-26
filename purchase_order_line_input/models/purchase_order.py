@@ -273,6 +273,12 @@ class PurchaseOrderLine(models.Model):
             for onchange_method in new_po._onchange_methods["partner_id"]:
                 onchange_method(new_po)
             order_data = new_po._convert_to_write(new_po._cache)
+            # picking_type_id is required in DB but its default may be disabled
+            # (sale_order_type_config sets default=False), so fill it here to
+            # let the on-the-fly purchase order be created.
+            if not order_data.get("picking_type_id"):
+                company_id = order_data.get("company_id") or new_po.env.company.id
+                order_data["picking_type_id"] = new_po._get_picking_type(company_id).id
             vals["order_id"] = new_po.create(order_data).id
         return super().create(vals)
 
@@ -282,17 +288,21 @@ class PurchaseOrderLine(models.Model):
         # is not implemented yet on the purchase orders.
         # This method should disappear as soon as this feature is
         # also introduced like in the sales module.
+        # NOTE: purchase.order.line._prepare_compute_all_values() was removed
+        # from Odoo core in v17, so the values are built here instead of
+        # calling super().
         self.ensure_one()
-        vals = super()._prepare_compute_all_values()
-        vals.update(
-            {
-                "qty_invoiced": self.qty_invoiced,
-                "qty_received": self.qty_received,
-                "qty_to_invoice": self.qty_to_invoice,
-                "qty_to_receive": self.qty_to_receive,
-            }
-        )
-        return vals
+        return {
+            "price_unit": self.price_unit,
+            "currency_id": self.order_id.currency_id,
+            "quantity": self.product_qty,
+            "product": self.product_id,
+            "partner": self.order_id.partner_id,
+            "qty_invoiced": self.qty_invoiced,
+            "qty_received": self.qty_received,
+            "qty_to_invoice": self.qty_to_invoice,
+            "qty_to_receive": self.qty_to_receive,
+        }
 
     def action_purchase_order_form(self):
         self.ensure_one()
