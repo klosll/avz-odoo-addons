@@ -59,7 +59,7 @@
       <field name="lot_id" position="attributes">
         <attribute
           name="domain"
-        >[('batch_id', '=', batch_id), ('product_id', '=', product_id), ('company_id', '=', company_id)]</attribute>
+        >[('batch_id', '=', batch_id), ('product_id', '=', product_id), '|', ('company_id', '=', False), ('company_id', '=', company_id)]</attribute>
       </field>
       <field name="quantity" position="after">
         <field
