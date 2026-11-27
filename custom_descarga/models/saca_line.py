@@ -395,9 +395,13 @@ class SacaLine(models.Model):
 
     @api.depends("gross_origin", "tara_origin")
     def _compute_net_origin(self):
-        for line in self:
+        # Guardia de reentrada (v18): onchange_origin() hace write() y puede
+        # volver a disparar los computes de saca.line -> recursion infinita.
+        skip_onchange = self.env.context.get("skip_net_origin_onchange")
+        for line in self.with_context(skip_net_origin_onchange=True):
             line.net_origin = line.gross_origin - line.tara_origin
-            line.onchange_origin()
+            if not skip_onchange:
+                line.onchange_origin()
 
     @api.depends("gross_dest", "tara_dest")
     def _compute_net_dest(self):
